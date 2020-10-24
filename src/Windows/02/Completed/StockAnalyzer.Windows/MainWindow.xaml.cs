@@ -46,12 +46,15 @@ namespace StockAnalyzer.Windows
         {
             using (var client = new HttpClient())
             {
+                // sle note: await causes the UI thread to pump the windows messages, but holding the thread ready to complete the method. It also return the Type of T ( in this case HttpResponseMessage) from the generic method              
                 var response = await client.GetAsync($"http://localhost:61363/api/stocks/{Ticker.Text}");
 
                 try
                 {
+                    // sle note: throws an exception if there is an error in the HTTPResponseMessage. To be handled in the exception handler.
                     response.EnsureSuccessStatusCode();
 
+                    // sle note: Returns a Task<string>. The await pumps the UI, and finally returns the <string> from the task.
                     var content = await response.Content.ReadAsStringAsync();
 
                     var data = JsonConvert.DeserializeObject<IEnumerable<StockPrice>>(content);

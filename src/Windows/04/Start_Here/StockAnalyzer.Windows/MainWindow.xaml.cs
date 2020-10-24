@@ -57,7 +57,8 @@ namespace StockAnalyzer.Windows
                 #region Load One or Many Tickers
                 var tickers = Ticker.Text.Split(',', ' ');
 
-                var service = new StockService();
+                //var service = new StockService();
+                var service = new MockStockService();
 
                 var tickerLoadingTasks = new List<Task<IEnumerable<StockPrice>>>();
                 foreach (var ticker in tickers)
@@ -98,6 +99,7 @@ namespace StockAnalyzer.Windows
                 using (var stream = new StreamReader(File.OpenRead(@"StockPrices_small.csv")))
                 {
                     string line;
+                    // sle note: reads a line from the stream and allow the UI thread to continue (i.e. not lockup)
                     while ((line = await stream.ReadLineAsync()) != null)
                     {
                         if (cancellationToken.IsCancellationRequested)
