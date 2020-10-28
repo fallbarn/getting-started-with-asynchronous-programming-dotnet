@@ -42,6 +42,9 @@ namespace StockAnalyzer.Windows
             #endregion
         }
 
+        // sle note: Methods with async must return a task type. In this case there is no parameter
+        // Once prefixed, the method can call other async methods (using the await) and ensure the the UI message queue will be pumped, that that
+        // the preceeding code will be run as a continuation.
         public async Task GetStocks()
         {
             using (var client = new HttpClient())
@@ -52,6 +55,7 @@ namespace StockAnalyzer.Windows
                 try
                 {
                     // sle note: throws an exception if there is an error in the HTTPResponseMessage. To be handled in the exception handler.
+                    // This is perculiar to the HTTPResponseMessage
                     response.EnsureSuccessStatusCode();
 
                     // sle note: Returns a Task<string>. The await pumps the UI, and finally returns the <string> from the task.

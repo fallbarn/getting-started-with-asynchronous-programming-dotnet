@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using Newtonsoft.Json;
 using StockAnalyzer.Core.Domain;
 
@@ -23,9 +25,12 @@ namespace StockAnalyzer.Windows.Services
             await Task.Delay((i++) * 1000);
             using (var client = new HttpClient())
             {
+                // sle note: the 'await' auto strips the result from the task.
+                // Awaitable methods always return a task containing a result!
                 var result = await client.GetAsync($"http://localhost:61363/api/stocks/{ticker}",
                     cancellationToken);
 
+                // sle note: throws an exception if the web request does not succeed.
                 result.EnsureSuccessStatusCode();
 
                 var content = await result.Content.ReadAsStringAsync();
@@ -40,6 +45,23 @@ namespace StockAnalyzer.Windows.Services
         public Task<IEnumerable<StockPrice>> GetStockPricesFor(string ticker,
             CancellationToken cancellationToken)
         {
+
+            // sle note: simple aid-memoire task example. This task has a generic result of type T set to int.
+            var t = new Task<int>(()=> { return 1; });
+            t.Start();
+            Task.WaitAll(t);
+            var result = t.Result;
+
+            // sle note: no result for this example!
+            var t2 = new Task(() => { MessageBox.Show("No result parameter"});
+            t2.Start();
+            Task.WaitAll(t2);
+
+            // sle note: alternative way
+            Task.Run(() => { return 1; }).ContinueWith((x) => MessageBox.Show($"{x.Result}"));
+            
+
+
             var stocks = new List<StockPrice> {
                 new StockPrice { Ticker = "MSFT", Change = 0.5m, ChangePercent = 0.75m },
                 new StockPrice { Ticker = "MSFT", Change = 0.2m, ChangePercent = 0.15m },
