@@ -61,7 +61,6 @@ namespace StockAnalyzer.Windows.Services
             //Task.Run(() => { return 1; }).ContinueWith((x) => MessageBox.Show($"Result is equal to:{x.Result}"));
 
 
-
             //var stocks = new List<StockPrice> {
             //    new StockPrice { Ticker = "MSFT", Change = 0.5m, ChangePercent = 0.75m },
             //    new StockPrice { Ticker = "MSFT", Change = 0.2m, ChangePercent = 0.15m },
@@ -69,21 +68,23 @@ namespace StockAnalyzer.Windows.Services
             //    new StockPrice { Ticker = "GOOGL", Change = 0.5m, ChangePercent = 0.65m }
             //};
 
-            var stocks = new List<StockPrice>();
 
-            Task.Run(async() => {
+            //return Task.FromResult(stocks.Where(stock => stock.Ticker == ticker));
+
+            var t = Task.Run(async() => {
+                var stocks = new List<StockPrice>();
+
                 stocks.Add(new StockPrice { Ticker = "MSFT", Change = 0.5m, ChangePercent = 0.75m });
                 stocks.Add(new StockPrice { Ticker = "MSFT", Change = 0.2m, ChangePercent = 0.15m });
-                // Simulate a ten second  delay whilst loading thousands of other tickers
-                await Task.Delay(10000);
-
                 stocks.Add(new StockPrice { Ticker = "GOOGL", Change = 0.3m, ChangePercent = 0.25m });
                 stocks.Add(new StockPrice { Ticker = "GOOGL", Change = 0.5m, ChangePercent = 0.65m });
-            });
 
-           
+                await Task.Delay(5000, cancellationToken);
 
-            return Task.FromResult(stocks.Where(stock => stock.Ticker == ticker));
+                return stocks.Where(stock => stock.Ticker == ticker);
+        });
+
+            return t;
         }
     }
 }

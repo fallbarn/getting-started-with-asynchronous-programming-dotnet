@@ -206,20 +206,20 @@ namespace StockAnalyzer.Windows
         #region Knowing when All or Any Task completes
         private async void Search_Click(object sender, RoutedEventArgs e)
         {
-            #region Code to make sure Web API is running
-            // This code is just here to make sure that you have started the web api as well!
-            using (var client = new HttpClient())
-            {
-                try
-                {
-                    var response = await client.GetAsync("http://localhost:61363");
-                }
-                catch (Exception)
-                {
-                    MessageBox.Show("Ensure that StockAnalyzer.Web is running, expecting to be running on http://localhost:61363. You can configure the solution to start two projects by right clicking the StockAnalyzer solution in Visual Studio, select properties and then Mutliuple Startup Projects.", "StockAnalyzer.Web IS NOT RUNNING");
-                }
-            }
-            #endregion
+            //#region Code to make sure Web API is running
+            //// This code is just here to make sure that you have started the web api as well!
+            //using (var client = new HttpClient())
+            //{
+            //    try
+            //    {
+            //        var response = await client.GetAsync("http://localhost:61363");
+            //    }
+            //    catch (Exception)
+            //    {
+            //        MessageBox.Show("Ensure that StockAnalyzer.Web is running, expecting to be running on http://localhost:61363. You can configure the solution to start two projects by right clicking the StockAnalyzer solution in Visual Studio, select properties and then Mutliuple Startup Projects.", "StockAnalyzer.Web IS NOT RUNNING");
+            //    }
+            //}
+            //#endregion
 
             #region Before loading stock data
             var watch = new Stopwatch();
@@ -262,12 +262,15 @@ namespace StockAnalyzer.Windows
 
                     tickerLoadingTasks.Add(loadTask);
                 }
-                var timeoutTask = Task.Delay(30000);
+                var timeoutTask = Task.Delay(1000);
 
+                // sle note: creates one task which will complete when the array of tasks that is passed as param completes
                 var allStocksLoadingTask = Task.WhenAll(tickerLoadingTasks);
 
+                // sle notes: both the delay task and the one for all task are passed as a parameter
                 var completedTask = await Task.WhenAny(timeoutTask, allStocksLoadingTask);
 
+                // sle note: throw exception if the Delay finishes first.
                 if (completedTask == timeoutTask)
                 {
                     cancellationTokenSource.Cancel();
@@ -275,8 +278,10 @@ namespace StockAnalyzer.Windows
                     throw new Exception("Timeout!");
                 }
 
-                  
-                  Stocks.ItemsSource = allStocksLoadingTask.Result.SelectMany(stocks => stocks);
+                var X1 = allStocksLoadingTask.Result;
+                var X2 = X1.SelectMany(stocks => stocks);
+                Stocks.ItemsSource = X2;
+
             }
             catch (Exception ex)
             {
