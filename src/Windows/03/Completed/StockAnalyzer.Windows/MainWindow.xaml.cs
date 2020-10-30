@@ -28,90 +28,90 @@ namespace StockAnalyzer.Windows
         CancellationTokenSource cancellationTokenSource = null;
 
         #region Completed
-        private async void Search_Click(object sender, RoutedEventArgs e)
-        {
-            #region Code to make sure Web API is running
-            // This code is just here to make sure that you have started the web api as well!
-            using (var client = new HttpClient())
-            {
-                try
-                {
-                    var response = await client.GetAsync("http://localhost:61363");
-                }
-                catch (Exception)
-                {
-                    MessageBox.Show("Ensure that StockAnalyzer.Web is running, expecting to be running on http://localhost:61363. You can configure the solution to start two projects by right clicking the StockAnalyzer solution in Visual Studio, select properties and then Mutliuple Startup Projects.", "StockAnalyzer.Web IS NOT RUNNING");
-                }
-            }
-            #endregion
+        //private async void Search_Click(object sender, RoutedEventArgs e)
+        //{
+        //    #region Code to make sure Web API is running
+        //    // This code is just here to make sure that you have started the web api as well!
+        //    using (var client = new HttpClient())
+        //    {
+        //        try
+        //        {
+        //            var response = await client.GetAsync("http://localhost:61363");
+        //        }
+        //        catch (Exception)
+        //        {
+        //            MessageBox.Show("Ensure that StockAnalyzer.Web is running, expecting to be running on http://localhost:61363. You can configure the solution to start two projects by right clicking the StockAnalyzer solution in Visual Studio, select properties and then Mutliuple Startup Projects.", "StockAnalyzer.Web IS NOT RUNNING");
+        //        }
+        //    }
+        //    #endregion
 
-            #region Before loading stock data
-            var watch = new Stopwatch();
-            watch.Start();
-            StockProgress.Visibility = Visibility.Visible;
-            StockProgress.IsIndeterminate = true;
+        //    #region Before loading stock data
+        //    var watch = new Stopwatch();
+        //    watch.Start();
+        //    StockProgress.Visibility = Visibility.Visible;
+        //    StockProgress.IsIndeterminate = true;
 
-            Search.Content = "Cancel";
-            #endregion
+        //    Search.Content = "Cancel";
+        //    #endregion
 
-            #region Cancellation
-            if (cancellationTokenSource != null)
-            {
-                cancellationTokenSource.Cancel();
-                cancellationTokenSource = null;
-                return;
-            }
+        //    #region Cancellation
+        //    if (cancellationTokenSource != null)
+        //    {
+        //        cancellationTokenSource.Cancel();
+        //        cancellationTokenSource = null;
+        //        return;
+        //    }
 
-            cancellationTokenSource = new CancellationTokenSource();
-            cancellationTokenSource.Token.Register(() =>
-            {
-                Notes.Text += "Cancellation requested" + Environment.NewLine;
-            });
-            #endregion
+        //    cancellationTokenSource = new CancellationTokenSource();
+        //    cancellationTokenSource.Token.Register(() =>
+        //    {
+        //        Notes.Text += "Cancellation requested" + Environment.NewLine;
+        //    });
+        //    #endregion
 
-            try
-            {
-                var tickers = Ticker.Text.Split(',', ' ');
+        //    try
+        //    {
+        //        var tickers = Ticker.Text.Split(',', ' ');
 
-                var service = new MockStockService();
+        //        var service = new MockStockService();
 
-                var tickerLoadingTasks = new List<Task<IEnumerable<StockPrice>>>();
-                foreach (var ticker in tickers)
-                {
-                    var loadTask = service.GetStockPricesFor(ticker, cancellationTokenSource.Token);
+        //        var tickerLoadingTasks = new List<Task<IEnumerable<StockPrice>>>();
+        //        foreach (var ticker in tickers)
+        //        {
+        //            var loadTask = service.GetStockPricesFor(ticker, cancellationTokenSource.Token);
 
-                    tickerLoadingTasks.Add(loadTask);
-                }
-                var timeoutTask = Task.Delay(30000);
+        //            tickerLoadingTasks.Add(loadTask);
+        //        }
+        //        var timeoutTask = Task.Delay(30000);
 
-                var allStocksLoadingTask = Task.WhenAll(tickerLoadingTasks);
+        //        var allStocksLoadingTask = Task.WhenAll(tickerLoadingTasks);
 
-                var completedTask = await Task.WhenAny(timeoutTask, allStocksLoadingTask);
+        //        var completedTask = await Task.WhenAny(timeoutTask, allStocksLoadingTask);
 
-                if (completedTask == timeoutTask)
-                {
-                    cancellationTokenSource.Cancel();
-                    cancellationTokenSource = null;
-                    throw new Exception("Timeout!");
-                }
+        //        if (completedTask == timeoutTask)
+        //        {
+        //            cancellationTokenSource.Cancel();
+        //            cancellationTokenSource = null;
+        //            throw new Exception("Timeout!");
+        //        }
 
-                Stocks.ItemsSource = allStocksLoadingTask.Result.SelectMany(stocks => stocks);
-            }
-            catch (Exception ex)
-            {
-                Notes.Text += ex.Message + Environment.NewLine;
-            }
-            finally
-            {
-                cancellationTokenSource = null;
-            }
+        //        Stocks.ItemsSource = allStocksLoadingTask.Result.SelectMany(stocks => stocks);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Notes.Text += ex.Message + Environment.NewLine;
+        //    }
+        //    finally
+        //    {
+        //        cancellationTokenSource = null;
+        //    }
 
-            #region After stock data is loaded
-            StocksStatus.Text = $"Loaded stocks for {Ticker.Text} in {watch.ElapsedMilliseconds}ms";
-            StockProgress.Visibility = Visibility.Hidden;
-            Search.Content = "Search";
-            #endregion
-        }
+        //    #region After stock data is loaded
+        //    StocksStatus.Text = $"Loaded stocks for {Ticker.Text} in {watch.ElapsedMilliseconds}ms";
+        //    StockProgress.Visibility = Visibility.Hidden;
+        //    Search.Content = "Search";
+        //    #endregion
+        //}
         #endregion
 
         #region Process a task as they complete
@@ -204,94 +204,98 @@ namespace StockAnalyzer.Windows
         #endregion
 
         #region Knowing when All or Any Task completes
-        //private async void Search_Click(object sender, RoutedEventArgs e)
-        //{
-        //    #region Code to make sure Web API is running
-        //    // This code is just here to make sure that you have started the web api as well!
-        //    using (var client = new HttpClient())
-        //    {
-        //        try
-        //        {
-        //            var response = await client.GetAsync("http://localhost:61363");
-        //        }
-        //        catch (Exception)
-        //        {
-        //            MessageBox.Show("Ensure that StockAnalyzer.Web is running, expecting to be running on http://localhost:61363. You can configure the solution to start two projects by right clicking the StockAnalyzer solution in Visual Studio, select properties and then Mutliuple Startup Projects.", "StockAnalyzer.Web IS NOT RUNNING");
-        //        }
-        //    }
-        //    #endregion
+        private async void Search_Click(object sender, RoutedEventArgs e)
+        {
+            #region Code to make sure Web API is running
+            // This code is just here to make sure that you have started the web api as well!
+            using (var client = new HttpClient())
+            {
+                try
+                {
+                    var response = await client.GetAsync("http://localhost:61363");
+                }
+                catch (Exception)
+                {
+                    MessageBox.Show("Ensure that StockAnalyzer.Web is running, expecting to be running on http://localhost:61363. You can configure the solution to start two projects by right clicking the StockAnalyzer solution in Visual Studio, select properties and then Mutliuple Startup Projects.", "StockAnalyzer.Web IS NOT RUNNING");
+                }
+            }
+            #endregion
 
-        //    #region Before loading stock data
-        //    var watch = new Stopwatch();
-        //    watch.Start();
-        //    StockProgress.Visibility = Visibility.Visible;
-        //    StockProgress.IsIndeterminate = true;
+            #region Before loading stock data
+            var watch = new Stopwatch();
+            watch.Start();
+            StockProgress.Visibility = Visibility.Visible;
+            StockProgress.IsIndeterminate = true;
 
-        //    Search.Content = "Cancel";
-        //    #endregion
+            Search.Content = "Cancel";
+            #endregion
 
-        //    #region Cancellation
-        //    if (cancellationTokenSource != null)
-        //    {
-        //        cancellationTokenSource.Cancel();
-        //        cancellationTokenSource = null;
-        //        return;
-        //    }
+            #region Cancellation
+            if (cancellationTokenSource != null)
+            {
+                cancellationTokenSource.Cancel();
+                cancellationTokenSource = null;
+                return;
+            }
 
-        //    cancellationTokenSource = new CancellationTokenSource();
+            cancellationTokenSource = new CancellationTokenSource();
 
-        //    cancellationTokenSource.Token.Register(() =>
-        //    {
-        //        Notes.Text += "Cancellation requested" + Environment.NewLine;
-        //    });
-        //    #endregion
+            cancellationTokenSource.Token.Register(() =>
+            {
+                Notes.Text += "Cancellation requested" + Environment.NewLine;
+            });
+            #endregion
 
-        //    try
-        //    {
-        //        var tickers = Ticker.Text.Split(',', ' ');
+            try
+            {
+                Stocks.ItemsSource = null;
 
-        //        var service = new StockService();
+                var tickers = Ticker.Text.Split(',', ' ');
 
-        //        var tickerLoadingTasks = new List<Task<IEnumerable<StockPrice>>>();
-        //        foreach (var ticker in tickers)
-        //        {
-        //            var loadTask = service.GetStockPricesFor(ticker, cancellationTokenSource.Token);
+                // var service = new StockService();
+                var service = new MockStockService();
 
-        //            tickerLoadingTasks.Add(loadTask);
-        //        }
-        //        var timeoutTask = Task.Delay(30000);
+                var tickerLoadingTasks = new List<Task<IEnumerable<StockPrice>>>();
+                foreach (var ticker in tickers)
+                {
+                    var loadTask = service.GetStockPricesFor(ticker, cancellationTokenSource.Token);
 
-        //        var allStocksLoadingTask = Task.WhenAll(tickerLoadingTasks);
+                    tickerLoadingTasks.Add(loadTask);
+                }
+                var timeoutTask = Task.Delay(30000);
 
-        //        var completedTask = await Task.WhenAny(timeoutTask, allStocksLoadingTask);
+                var allStocksLoadingTask = Task.WhenAll(tickerLoadingTasks);
 
-        //        if (completedTask == timeoutTask)
-        //        {
-        //            cancellationTokenSource.Cancel();
-        //            cancellationTokenSource = null;
-        //            throw new Exception("Timeout!");
-        //        }
+                var completedTask = await Task.WhenAny(timeoutTask, allStocksLoadingTask);
 
-        //        Stocks.ItemsSource = allStocksLoadingTask.Result.SelectMany(stocks => stocks);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Notes.Text += ex.Message + Environment.NewLine;
-        //    }
-        //    finally
-        //    {
-        //        cancellationTokenSource = null;
-        //    }
+                if (completedTask == timeoutTask)
+                {
+                    cancellationTokenSource.Cancel();
+                    cancellationTokenSource = null;
+                    throw new Exception("Timeout!");
+                }
 
-        //    #region After stock data is loaded
-        //    StocksStatus.Text = $"Loaded stocks for {Ticker.Text} in {watch.ElapsedMilliseconds}ms";
-        //    StockProgress.Visibility = Visibility.Hidden;
-        //    Search.Content = "Search";
-        //    #endregion
-        //}
+                  
+                  Stocks.ItemsSource = allStocksLoadingTask.Result.SelectMany(stocks => stocks);
+            }
+            catch (Exception ex)
+            {
+                Notes.Text += ex.Message + Environment.NewLine;
+            }
+            finally
+            {
+                cancellationTokenSource = null;
+            }
+
+            #region After stock data is loaded
+            StocksStatus.Text = $"Loaded stocks for {Ticker.Text} in {watch.ElapsedMilliseconds}ms";
+            StockProgress.Visibility = Visibility.Hidden;
+            Search.Content = "Search";
+            #endregion
+        }
         #endregion
 
-        #region Handeling Success or Failure
+        #region Handling Success or Failure
         //private void Search_Click(object sender, RoutedEventArgs e)
         //{
         //    #region Before loading stock data
@@ -305,8 +309,11 @@ namespace StockAnalyzer.Windows
 
         //    if (cancellationTokenSource != null)
         //    {
+        //        // sle note: At this point the SearchForStock is running in the background getting each line asychronously and checking the cancel token. Here we cancel it.
         //        cancellationTokenSource.Cancel();
         //        cancellationTokenSource = null;
+
+        //        // sle note: Important to return here because don't want to kick off another SearchForStock request.
         //        return;
         //    }
 
@@ -319,6 +326,8 @@ namespace StockAnalyzer.Windows
 
         //    var loadLinesTask = SearchForStocks(cancellationTokenSource.Token);
 
+        //    // sle note: only called if  the preceeding task ran to completion.
+        //    //           also, will not execute if the cancellationToken is set.
         //    var processStocksTask = loadLinesTask.ContinueWith(t =>
         //    {
 
@@ -353,6 +362,7 @@ namespace StockAnalyzer.Windows
         //        TaskContinuationOptions.OnlyOnRanToCompletion,
         //        TaskScheduler.Current);
 
+        //    // sle note: only called if an exception is raised in the preceeding task.
         //    loadLinesTask.ContinueWith(t =>
         //    {
         //        Dispatcher.Invoke(() =>
@@ -376,6 +386,7 @@ namespace StockAnalyzer.Windows
 
         //    cancellationTokenSource = null;
         //}
+
         #endregion
 
         #region Controlling the Continuations Execution Context
@@ -398,6 +409,8 @@ namespace StockAnalyzer.Windows
 
         private Task<List<string>> SearchForStocks(CancellationToken cancellationToken)
         {
+            // sle note: here the 'async' and 'await' key words are embedded in the anonymous func given to Task.Run()
+            // This allows the main UI thread to keep pumping and thus the cancellationToken can be requested.
             var loadLinesTask = Task.Run(async () =>
             {
                 var lines = new List<string>();
@@ -407,6 +420,7 @@ namespace StockAnalyzer.Windows
                     string line;
                     while ((line = await stream.ReadLineAsync()) != null)
                     {
+                        // sle note: the cancellationToken is checked on a line by line basis.
                         if (cancellationToken.IsCancellationRequested)
                         {
                             return lines;

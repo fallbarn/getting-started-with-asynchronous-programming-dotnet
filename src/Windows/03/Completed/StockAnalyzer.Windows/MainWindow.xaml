@@ -18,7 +18,7 @@
                 <TextBlock Padding="5" x:Name="StocksStatus">No data loaded</TextBlock>
             </StatusBarItem>
             <StatusBarItem>
-                <ProgressBar x:Name="StockProgress" Width="200" Height="15" Visibility="Hidden"></ProgressBar>
+                <ProgressBar x:Name="StockProgress" Width="200" Height="15" Visibility="Visible"></ProgressBar>
             </StatusBarItem>
             <StatusBarItem HorizontalAlignment="Right">
                 <TextBlock Padding="5">
