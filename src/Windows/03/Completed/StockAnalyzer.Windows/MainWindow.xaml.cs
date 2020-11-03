@@ -162,15 +162,24 @@ namespace StockAnalyzer.Windows
         //        var tickers = Ticker.Text.Split(',', ' ');
 
         //        var service = new StockService();
+
+        //        // sle note: many threads can complete to put values in this IEnumberable subtype.
         //        var stocks = new ConcurrentBag<StockPrice>();
 
         //        var tickerLoadingTasks = new List<Task<IEnumerable<StockPrice>>>();
+
+        //        // sle note: returns a running task for each search term (Ticker). The continuation
+        //        // places the result into the UI as soon as the task has completed.
         //        foreach (var ticker in tickers)
         //        {
+
         //            var loadTask = service.GetStockPricesFor(ticker, cancellationTokenSource.Token)
         //                .ContinueWith(t =>
         //                {
-        //                    foreach (var stock in t.Result.Take(5)) stocks.Add(stock);
+        //                    foreach (var stock in t.Result.Take(5))
+        //                    {
+        //                        stocks.Add(stock);
+        //                    }
 
         //                    Dispatcher.Invoke(() =>
         //                    {
@@ -183,6 +192,7 @@ namespace StockAnalyzer.Windows
         //            tickerLoadingTasks.Add(loadTask);
         //        }
 
+        //        // sle note: Simply awaits the completion of all tasks, this time.
         //        await Task.WhenAll(tickerLoadingTasks);
 
         //    }
@@ -204,100 +214,104 @@ namespace StockAnalyzer.Windows
         #endregion
 
         #region Knowing when All or Any Task completes
-        private async void Search_Click(object sender, RoutedEventArgs e)
-        {
-            //#region Code to make sure Web API is running
-            //// This code is just here to make sure that you have started the web api as well!
-            //using (var client = new HttpClient())
-            //{
-            //    try
-            //    {
-            //        var response = await client.GetAsync("http://localhost:61363");
-            //    }
-            //    catch (Exception)
-            //    {
-            //        MessageBox.Show("Ensure that StockAnalyzer.Web is running, expecting to be running on http://localhost:61363. You can configure the solution to start two projects by right clicking the StockAnalyzer solution in Visual Studio, select properties and then Mutliuple Startup Projects.", "StockAnalyzer.Web IS NOT RUNNING");
-            //    }
-            //}
-            //#endregion
+        //private async void Search_Click(object sender, RoutedEventArgs e)
+        //{
+        //    //#region Code to make sure Web API is running
+        //    // This code is just here to make sure that you have started the web api as well!
+        //    using (var client = new HttpClient())
+        //    {
+        //        try
+        //        {
+        //            var response = await client.GetAsync("http://localhost:61363");
+        //        }
+        //        catch (Exception)
+        //        {
+        //            MessageBox.Show("Ensure that StockAnalyzer.Web is running, expecting to be running on http://localhost:61363. You can configure the solution to start two projects by right clicking the StockAnalyzer solution in Visual Studio, select properties and then Mutliuple Startup Projects.", "StockAnalyzer.Web IS NOT RUNNING");
+        //        }
+        //    }
+        //    //#endregion
 
-            #region Before loading stock data
-            var watch = new Stopwatch();
-            watch.Start();
-            StockProgress.Visibility = Visibility.Visible;
-            StockProgress.IsIndeterminate = true;
+        //    #region Before loading stock data
+        //    var watch = new Stopwatch();
+        //    watch.Start();
+        //    StockProgress.Visibility = Visibility.Visible;
+        //    StockProgress.IsIndeterminate = true;
 
-            Search.Content = "Cancel";
-            #endregion
+        //    Search.Content = "Cancel";
+        //    #endregion
 
-            #region Cancellation
-            if (cancellationTokenSource != null)
-            {
-                cancellationTokenSource.Cancel();
-                cancellationTokenSource = null;
-                return;
-            }
+        //    #region Cancellation
+        //    if (cancellationTokenSource != null)
+        //    {
+        //        cancellationTokenSource.Cancel();
+        //        cancellationTokenSource = null;
+        //        return;
+        //    }
 
-            cancellationTokenSource = new CancellationTokenSource();
+        //    cancellationTokenSource = new CancellationTokenSource();
 
-            cancellationTokenSource.Token.Register(() =>
-            {
-                Notes.Text += "Cancellation requested" + Environment.NewLine;
-            });
-            #endregion
+        //    cancellationTokenSource.Token.Register(() =>
+        //    {
+        //        Notes.Text += "Cancellation requested" + Environment.NewLine;
+        //    });
+        //    #endregion
 
-            try
-            {
-                Stocks.ItemsSource = null;
+        //    try
+        //    {
+        //        Stocks.ItemsSource = null;
 
-                var tickers = Ticker.Text.Split(',', ' ');
+        //        var tickers = Ticker.Text.Split(',', ' ');
 
-                // var service = new StockService();
-                var service = new MockStockService();
+        //        var service = new StockService();
+        //        //var service = new MockStockService();
 
-                var tickerLoadingTasks = new List<Task<IEnumerable<StockPrice>>>();
-                foreach (var ticker in tickers)
-                {
-                    var loadTask = service.GetStockPricesFor(ticker, cancellationTokenSource.Token);
+        //        var tickerLoadingTasks = new List<Task<IEnumerable<StockPrice>>>();
+        //        foreach (var ticker in tickers)
+        //        {
+        //            var loadTask = service.GetStockPricesFor(ticker, cancellationTokenSource.Token);
 
-                    tickerLoadingTasks.Add(loadTask);
-                }
-                var timeoutTask = Task.Delay(1000);
+        //            tickerLoadingTasks.Add(loadTask);
+        //        }
+        //        var timeoutTask = Task.Delay(10000);
 
-                // sle note: creates one task which will complete when the array of tasks that is passed as param completes
-                var allStocksLoadingTask = Task.WhenAll(tickerLoadingTasks);
+        //        // sle note: creates one task which will complete when the array of tasks that is passed as param completes
+        //        // But it also turns insideout the IEnumberable of Tasks and result into a single Task with an array of the same result.
+        //        var allStocksLoadingTask = Task.WhenAll(tickerLoadingTasks);
 
-                // sle notes: both the delay task and the one for all task are passed as a parameter
-                var completedTask = await Task.WhenAny(timeoutTask, allStocksLoadingTask);
+        //        // sle note: When all have completed, strips out the Tasks from the List and  turns  List<Task<IEnumerable<StockPrice>>>() into IEnumberable<StockPrice>[]
+        //        //var v1 = await Task.WhenAll(tickerLoadingTasks);
 
-                // sle note: throw exception if the Delay finishes first.
-                if (completedTask == timeoutTask)
-                {
-                    cancellationTokenSource.Cancel();
-                    cancellationTokenSource = null;
-                    throw new Exception("Timeout!");
-                }
+        //        // sle notes: both the delay task and the one for all task are passed as a parameter
+        //        var completedTask = await Task.WhenAny(timeoutTask, allStocksLoadingTask);
 
-                var X1 = allStocksLoadingTask.Result;
-                var X2 = X1.SelectMany(stocks => stocks);
-                Stocks.ItemsSource = X2;
+        //        // sle note: throw exception if the Delay finishes first.
+        //        if (completedTask == timeoutTask)
+        //        {
+        //            cancellationTokenSource.Cancel();
+        //            cancellationTokenSource = null;
+        //            throw new Exception("Timeout!");
+        //        }
 
-            }
-            catch (Exception ex)
-            {
-                Notes.Text += ex.Message + Environment.NewLine;
-            }
-            finally
-            {
-                cancellationTokenSource = null;
-            }
+        //        var X1 = allStocksLoadingTask.Result;
+        //        var X2 = X1.SelectMany(stocks => stocks);
+        //        Stocks.ItemsSource = X2;
 
-            #region After stock data is loaded
-            StocksStatus.Text = $"Loaded stocks for {Ticker.Text} in {watch.ElapsedMilliseconds}ms";
-            StockProgress.Visibility = Visibility.Hidden;
-            Search.Content = "Search";
-            #endregion
-        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Notes.Text += ex.Message + Environment.NewLine;
+        //    }
+        //    finally
+        //    {
+        //        cancellationTokenSource = null;
+        //    }
+
+        //    #region After stock data is loaded
+        //    StocksStatus.Text = $"Loaded stocks for {Ticker.Text} in {watch.ElapsedMilliseconds}ms";
+        //    StockProgress.Visibility = Visibility.Hidden;
+        //    Search.Content = "Search";
+        //    #endregion
+        //}
         #endregion
 
         #region Handling Success or Failure
@@ -395,21 +409,26 @@ namespace StockAnalyzer.Windows
         #endregion
 
         #region Controlling the Continuations Execution Context
-        //private async void Search_Click(object sender, RoutedEventArgs e)
-        //{
-        //    var result = await GetStockFor(Ticker.Text);
+        private async void Search_Click(object sender, RoutedEventArgs e)
+        {
+            var result = await GetStockFor(Ticker.Text);
 
-        //    Notes.Text += $"Stocks loaded!{Environment.NewLine}";
-        //}
-        //public async Task<IEnumerable<StockPrice>> GetStockFor(string ticker)
-        //{
-        //    var service = new StockService();
+            Notes.Text += $"Stocks loaded!{Environment.NewLine}";
+        }
+        public async Task<IEnumerable<StockPrice>> GetStockFor(string ticker)
+        {
+            // on captured context
+            var service = new StockService();
 
-        //    var stocks = await service.GetStockPricesFor(ticker, CancellationToken.None)
-        //        .ConfigureAwait(false);
+            // on  on captured context
+            var stocks = await service.GetStockPricesFor(ticker, CancellationToken.None)
+                .ConfigureAwait(false);
 
-        //    return stocks.Take(5);
-        //}
+            // sle note:  on `service.GetStockPricesFor` thread. The rest of the method is run in the thread spawned for service.GetStockPricesFor
+            // Using `.configureAwait` saves the expense of Marshalling back to the captured context.
+
+            return stocks.Take(5);
+        }
         #endregion
 
         private Task<List<string>> SearchForStocks(CancellationToken cancellationToken)

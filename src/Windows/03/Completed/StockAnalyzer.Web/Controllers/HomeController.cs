@@ -31,6 +31,7 @@ namespace StockAnalyzer.Web.Controllers
 
             var data = await store.LoadStocks();
 
+            // sle note: Packs the result into HTML according to the VIEW found in Views / Home / Stock.
             return View(data[ticker]);
         }
     }

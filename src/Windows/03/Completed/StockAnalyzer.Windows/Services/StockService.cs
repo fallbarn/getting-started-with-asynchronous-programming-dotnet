@@ -30,7 +30,7 @@ namespace StockAnalyzer.Windows.Services
                 var result = await client.GetAsync($"http://localhost:61363/api/stocks/{ticker}",
                     cancellationToken);
 
-                // sle note: throws an exception if the web request does not succeed.
+                // sle note: throws an exception if the web request does not succeed. (HTTPResponseMessage)
                 result.EnsureSuccessStatusCode();
 
                 var content = await result.Content.ReadAsStringAsync();
