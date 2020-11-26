@@ -12,6 +12,24 @@ using StockAnalyzer.Core.Domain;
 
 namespace StockAnalyzer.Core
 {
+    // sle note: Exercise
+    //public class MyGrouping<TKey, TElement> : IGrouping<TKey, TElement>
+    //{
+    //    public TKey Key { get; set; }
+
+    //    List<TElement> StockPrices = new List<TElement>();
+
+    //    public IEnumerator<TElement> GetEnumerator()
+    //    {
+    //        return (IEnumerator<TElement>)StockPrices;
+    //    }
+
+    //    IEnumerator IEnumerable.GetEnumerator()
+    //    {
+    //        return (IEnumerator)StockPrices;
+    //    }
+    //}
+
     public class DataStore
     {
         public Dictionary<string, Company> Companies = new Dictionary<string, Company>();
@@ -33,6 +51,11 @@ namespace StockAnalyzer.Core
 
             var prices = await GetStockPrices();
 
+            // sle note: Exercise
+            //IGrouping<int, StockPrice> t = new MyGrouping<int, StockPrice>();
+            //var x = t.AsEnumerable();
+
+            // sle note: first creates a group, then returns a dictionary, where the Ticker is the Keys and IEnumerable<StockPrice> is the Values
             Stocks = prices
                 .GroupBy(x => x.Ticker)
                 .ToDictionary(x => x.Key, x => x.AsEnumerable());
@@ -44,7 +67,7 @@ namespace StockAnalyzer.Core
         {
             using (var stream = new StreamReader(File.OpenRead(Path.Combine(basePath, @"CompanyData.csv"))))
             {
-                await stream.ReadLineAsync();
+                await stream.ReadLineAsync(); // skip header
 
                 string line;
                 while ((line = await stream.ReadLineAsync()) != null)
@@ -68,7 +91,7 @@ namespace StockAnalyzer.Core
                         Sector = segments[8]
                     };
 
-                    if (!Companies.ContainsKey(segments[0]))
+                    if (!Companies.ContainsKey(segments[0])) // Avoid duplications, thus risk of raising an exception.
                     {
                         Companies.Add(segments[0], company);
                     }

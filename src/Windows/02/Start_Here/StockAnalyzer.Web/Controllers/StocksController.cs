@@ -22,6 +22,7 @@ namespace StockAnalyzer.Web.Controllers
 
             if (!data.ContainsKey(ticker)) return NotFound();
 
+            // sle note: the IEnumberable of stockprice is converted into a string in the json to be sent across the web.
             return Json(data[ticker]);
         }
     }

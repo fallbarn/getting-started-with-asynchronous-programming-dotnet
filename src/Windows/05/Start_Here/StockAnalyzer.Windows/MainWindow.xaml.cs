@@ -90,9 +90,14 @@ namespace StockAnalyzer.Windows
                 tickerLoadingTasks.Add(loadTask);
             }
 
+            // sle note: awaits for an array of task
             var allStocks = await Task.WhenAll(tickerLoadingTasks);
 
-            Stocks.ItemsSource = allStocks.SelectMany(stocks => stocks);
+            // sle note: the complex intellisence here is because SelectMany is an extension method on IEnumerable<StockPrice> (i.e. this IEnumerable<TSource> source)
+            // SelectMany joins up an Array of IEnumerable into a single IEnumberable of TSource.
+            var result = allStocks.SelectMany(stocks => stocks);
+
+            Stocks.ItemsSource = result;
         }
         
         private Task<List<string>> SearchForStocks(CancellationToken cancellationToken)

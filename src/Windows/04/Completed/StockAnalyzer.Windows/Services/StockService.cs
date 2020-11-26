@@ -30,6 +30,8 @@ namespace StockAnalyzer.Windows.Services
 
                 var content = await result.Content.ReadAsStringAsync();
 
+                // sle note: (the difficult bit to understand) although the code between the various awaits is suspended as a continuation, the main thread (UI in this case) still returns the Task to the calling level in
+                // in the stack below. In this case the task is placed into a list of tasks that is collectively awaited on.
                 return JsonConvert.DeserializeObject<IEnumerable<StockPrice>>(content);
             }
         }

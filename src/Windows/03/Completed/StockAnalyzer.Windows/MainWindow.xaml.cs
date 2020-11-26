@@ -163,7 +163,7 @@ namespace StockAnalyzer.Windows
 
         //        var service = new StockService();
 
-        //        // sle note: many threads can complete to put values in this IEnumberable subtype.
+        //        // sle note: many threads can compete to put values in this IEnumberable subtype.
         //        var stocks = new ConcurrentBag<StockPrice>();
 
         //        var tickerLoadingTasks = new List<Task<IEnumerable<StockPrice>>>();

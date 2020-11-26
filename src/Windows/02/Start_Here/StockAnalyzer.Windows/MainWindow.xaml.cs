@@ -27,13 +27,16 @@ namespace StockAnalyzer.Windows
             StockProgress.IsIndeterminate = true;
             #endregion
 
-            var client = new WebClient();
+            using (var client = new WebClient())
+            {
 
-            var content = client.DownloadString($"http://localhost:61363/api/stocks/{Ticker.Text}");
+                var content = client.DownloadString($"http://localhost:61363/api/stocks/{Ticker.Text}");
 
-            var data = JsonConvert.DeserializeObject<IEnumerable<StockPrice>>(content);
+                // sle note: the IEnumberable of stockprice is converted from a json string into a IEnumerable of StockPrice.
+                var data = JsonConvert.DeserializeObject<IEnumerable<StockPrice>>(content);
 
-            Stocks.ItemsSource = data;
+                Stocks.ItemsSource = data;
+            }
 
             #region After stock data is loaded
             StocksStatus.Text = $"Loaded stocks for {Ticker.Text} in {watch.ElapsedMilliseconds}ms";

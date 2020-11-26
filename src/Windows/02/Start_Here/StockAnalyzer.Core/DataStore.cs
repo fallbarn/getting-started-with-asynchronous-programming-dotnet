@@ -40,6 +40,10 @@ namespace StockAnalyzer.Core
             return Stocks;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         private async Task LoadCompanies()
         {
             using (var stream = new StreamReader(File.OpenRead(Path.Combine(basePath, @"CompanyData.csv"))))
